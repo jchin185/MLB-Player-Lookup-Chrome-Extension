@@ -1,28 +1,27 @@
 // based on http://stackoverflow.com/questions/247483/http-get-request-in-javascript
-// and http://www.html5rocks.com/en/tutorials/es6/promises/
-const HttpRequest = function() {
-  this.get = (reqURL) => {
-    return new Promise((resolve, reject) => {
-      const request = new XMLHttpRequest();
-      request.onload = () => {
-        if (request.readyState === 4 && request.status === 200) {
-          resolve(request.response);
-        } else {
-          reject(Error(request));
-        }
+// and http://www.html5rocks.com/en/tutorials/es6/promises/#toc-promisifying-xmlhttprequest
+function HTTPGetRequest(reqURL) {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.onload = () => {
+      if (request.readyState === 4 && request.status === 200) {
+        resolve(request.response);
+      } else {
+        reject(Error(request));
       }
+    }
 
-      request.open('GET', reqURL);
-      request.send();
-    });
-  }
+    request.open('GET', reqURL);
+    request.send();
+  });
 };
 
-function getJSON(req, reqURL) {
-  return req.get(reqURL).then(JSON.parse);
+function getJSON(reqURL) {
+  return HTTPGetRequest(reqURL).then(JSON.parse);
 };
 
-function searchActivePlayers(selectionText, resJSON) {
+// Returns a player MLB id if a player is found, otherwise empty string
+function getMLBID(selectionText, resJSON) {
   let playerID = '',
     oneName = false;
   if (selectionText.split(' ').length === 1) {
@@ -42,24 +41,60 @@ function searchActivePlayers(selectionText, resJSON) {
     }
   }
 
-  // If no player was found, do a google search instead
-  (playerID) ? newURL = 'http://m.mlb.com/player/' + playerID : newURL = 'https://www.google.com/search?q=' + selectionText;
-  chrome.tabs.create({
-    url: newURL
-  });
+  return playerID;
 };
 
+function createTab(url) {
+  chrome.tabs.create({
+    url: url
+  });
+}
+
+// Taken from http://www.html5rocks.com/en/tutorials/es6/promises/#toc-parallelism-sequencing
+function spawn(generatorFunc) {
+  function continuer(verb, arg) {
+    var result;
+    try {
+      result = generator[verb](arg);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+    if (result.done) {
+      return result.value;
+    } else {
+      return Promise.resolve(result.value).then(onFulfilled, onRejected);
+    }
+  }
+  var generator = generatorFunc();
+  var onFulfilled = continuer.bind(continuer, 'next');
+  var onRejected = continuer.bind(continuer, 'throw');
+  return onFulfilled();
+}
+
 function searchMLB(info, tab) {
-  const selectionText = info.selectionText.trim(),
-    httpRequest = new HttpRequest(),
-    reqURL = 'http://mlb.mlb.com/lookup/json/named.search_player_all.bam?sport_code=%27mlb%27&name_part=%27'
+  const selectionText = info.selectionText.trim();
+  let reqURL = 'http://mlb.mlb.com/lookup/json/named.search_player_all.bam?sport_code=%27mlb%27&name_part=%27'
       + selectionText + '%25%27&active_sw=%27Y%27';
 
-  // Send out the request
-  getJSON(httpRequest, reqURL).then((response) => {
-    searchActivePlayers(selectionText, response);
-  }, (error) => {
-    console.log('Failed', error);
+  // First search for active players
+  // If no results, search for inactive players
+  // If still no results, go a google search
+  spawn(function *() {
+    let resJSON =  yield getJSON(reqURL);
+    let retID = getMLBID(selectionText, resJSON);
+
+    if (retID) {
+      createTab('http://m.mlb.com/player/' + retID);
+    } else {
+      reqURL = reqURL.replace(/(&active_sw=%27)Y(%27)/, '$1N$2');
+      retJSON = yield getJSON(reqURL);
+      retID = getMLBID(selectionText, retJSON);
+      if (retID) {
+        createTab('http://m.mlb.com/player/' + retID);
+      } else {
+        createTab('https://www.google.com/search?q=' + selectionText);
+      }
+    }
   });
 };
 
