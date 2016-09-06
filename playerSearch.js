@@ -75,25 +75,32 @@ function searchMLB(info, tab) {
   const selectionText = info.selectionText.trim();
   let reqURL = 'http://mlb.mlb.com/lookup/json/named.search_player_all.bam?sport_code=%27mlb%27&name_part=%27'
       + selectionText + '%25%27&active_sw=%27Y%27';
+  let urlArr = [
+                {
+                  reqURL:'http://mlb.mlb.com/lookup/json/named.search_player_all.bam?sport_code=%27mlb%27&name_part=%27QUERY%25%27&active_sw=%27Y%27',
+                  tabURL: 'http://m.mlb.com/player/PLAYER_ID',
+                  function: getMLBID
+                },
+                {
+                  reqURL: 'http://mlb.mlb.com/lookup/json/named.search_player_all.bam?sport_code=%27mlb%27&name_part=%27QUERY%25%27&active_sw=%27N%27',
+                  tabURL: 'http://m.mlb.com/player/PLAYER_ID',
+                  function: getMLBID
+                }
+               ];
 
-  // First search for active players
-  // If no results, search for inactive players
-  // If still no results, go a google search
   spawn(function *() {
-    let resJSON =  yield getJSON(reqURL);
-    let retID = getMLBID(selectionText, resJSON);
-
-    if (retID) {
-      createTab('http://m.mlb.com/player/' + retID);
-    } else {
-      reqURL = reqURL.replace(/(&active_sw=%27)Y(%27)/, '$1N$2');
-      retJSON = yield getJSON(reqURL);
-      retID = getMLBID(selectionText, retJSON);
+    let playerFound = false;
+    for (const urlObj of urlArr) {
+      const resJSON = yield getJSON(urlObj.reqURL.replace('QUERY', selectionText));
+      const retID = urlObj.function(selectionText, resJSON);
       if (retID) {
-        createTab('http://m.mlb.com/player/' + retID);
-      } else {
-        createTab('https://www.google.com/search?q=' + selectionText);
+        createTab(urlObj.tabURL.replace('PLAYER_ID', retID));
+        playerFound = true;
+        break;
       }
+    }
+    if (!playerFound) {
+      createTab('https://www.google.com/search?q=' + selectionText);
     }
   });
 };
