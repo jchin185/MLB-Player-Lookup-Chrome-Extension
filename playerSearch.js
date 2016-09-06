@@ -1,20 +1,28 @@
 // based on http://stackoverflow.com/questions/247483/http-get-request-in-javascript
+// and http://www.html5rocks.com/en/tutorials/es6/promises/
 const HttpRequest = function() {
-    this.get = (reqURL, callback) => {
-        const aHttpRequest = new XMLHttpRequest();
-        aHttpRequest.onreadystatechange = () => {
-            if (aHttpRequest.readyState === 4 && aHttpRequest.status === 200) {
-                callback(aHttpRequest.responseText);
-            }
+  this.get = (reqURL) => {
+    return new Promise((resolve, reject) => {
+      const request = new XMLHttpRequest();
+      request.onload = () => {
+        if (request.readyState === 4 && request.status === 200) {
+          resolve(request.response);
+        } else {
+          reject(Error(request));
         }
+      }
 
-        aHttpRequest.open('GET', reqURL, true);
-        aHttpRequest.send(null);
-    }
+      request.open('GET', reqURL);
+      request.send();
+    });
+  }
 };
 
-function searchActivePlayers(selectionText, resText) {
-  const resJSON = JSON.parse(resText);
+function getJSON(req, reqURL) {
+  return req.get(reqURL).then(JSON.parse);
+};
+
+function searchActivePlayers(selectionText, resJSON) {
   let playerID = '',
     oneName = false;
   if (selectionText.split(' ').length === 1) {
@@ -42,13 +50,17 @@ function searchActivePlayers(selectionText, resText) {
 };
 
 function searchMLB(info, tab) {
-  const selectionText = info.selectionText.trim();
-  const httpRequest = new HttpRequest();
+  const selectionText = info.selectionText.trim(),
+    httpRequest = new HttpRequest(),
+    reqURL = 'http://mlb.mlb.com/lookup/json/named.search_player_all.bam?sport_code=%27mlb%27&name_part=%27'
+      + selectionText + '%25%27&active_sw=%27Y%27';
 
   // Send out the request
-  const reqURL = 'http://mlb.mlb.com/lookup/json/named.search_player_all.bam?sport_code=%27mlb%27&name_part=%27' 
-    + selectionText + '%25%27&active_sw=%27Y%27';
-  httpRequest.get(reqURL, searchActivePlayers.bind(null, selectionText));
+  getJSON(httpRequest, reqURL).then((response) => {
+    searchActivePlayers(selectionText, response);
+  }, (error) => {
+    console.log('Failed', error);
+  });
 };
 
 // Create the context menu
