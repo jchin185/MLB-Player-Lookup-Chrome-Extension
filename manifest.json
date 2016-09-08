@@ -4,7 +4,8 @@
     "manifest_version": 2,
     "description": "Search for MLB players through the Google Chrome context menu.",
     "permissions": [
-      "contextMenus"
+      "contextMenus",
+      "http://*.baseball-reference.com/"
      ],
     "background": { 
       "scripts": ["playerSearch.js"]

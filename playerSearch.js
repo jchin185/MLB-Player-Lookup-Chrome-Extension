@@ -38,7 +38,7 @@ function getMLBID(playerName, isMajorLeague, searchObj) {
       playerID = rowObj.player_id;
     } else if (numResults > 1) {
       for (const player of rowObj) {
-        if ((oneName && player.name_first === playerName) || (oneName && player.name_last === playerName)|| (player.name_display_first_last === playerName)) {
+        if ((oneName && player.name_first.toLowerCase() === playerName) || (oneName && player.name_last.toLowerCase() === playerName)|| (player.name_display_first_last.toLowerCase() === playerName)) {
           playerID = player.player_id;
           break;
         }
@@ -47,6 +47,28 @@ function getMLBID(playerName, isMajorLeague, searchObj) {
   }
 
   return playerID;
+};
+
+// Returns the Baseball Reference id if a player is found, otherwise emtpy string
+// *TODO: Do some type of optimized search to avoid going down list one by one*
+function getBBReferenceID(playerName, searchObj){
+  let playerID = '';
+  for (const player of searchObj) {
+    if (player.v.toLowerCase() === playerName) {
+      playerID = player.i;
+      break;
+    }
+  }
+
+  return playerID;
+};
+
+// Returns the suffix for the Baseball Reference player URL
+function getBBReferenceSuffix(playerID) {
+  //first letter of last name followed by id
+  if (playerID) {
+    return playerID.split('')[0] + '/' + playerID;
+  }
 };
 
 function createTab(url) {
@@ -77,7 +99,7 @@ function spawn(generatorFunc) {
 }
 
 function searchMLB(info, tab) {
-  const selectionText = info.selectionText.trim();
+  const selectionText = info.selectionText.trim().toLowerCase();
   let urlArr = [
                 {
                   reqURL:'http://mlb.mlb.com/lookup/json/named.search_player_all.bam?sport_code=%27mlb%27&name_part=%27QUERY%25%27&active_sw=%27Y%27',
@@ -90,6 +112,10 @@ function searchMLB(info, tab) {
                 {
                   reqURL: 'http://www.milb.com/lookup/json/named.milb_player_search.bam?active_sw=%27Y%27&name_part=%27QUERY%25%27',
                   tabURL: 'http://www.milb.com/player/index.jsp?sid=milb&player_id=PLAYER_ID'
+                },
+                {
+                  reqURL: 'http://www.baseball-reference.com/inc/players_search_list.json',
+                  tabURL: 'http://www.baseball-reference.com/players/PLAYER_ID.shtml'
                 }
                ];
 
@@ -102,6 +128,9 @@ function searchMLB(info, tab) {
         retID = getMLBID(selectionText, true, resJSON);
       } else if (/milb\.com\/lookup/.test(urlObj.reqURL)) {
         retID = getMLBID(selectionText, false, resJSON);
+      } else if (/baseball-reference/.test(urlObj.reqURL)) {
+        retID = getBBReferenceID(selectionText, resJSON);
+        retID = getBBReferenceSuffix(retID);
       }
 
       if (retID) {
