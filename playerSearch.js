@@ -98,7 +98,11 @@ function spawn(generatorFunc) {
   return onFulfilled();
 }
 
-function searchMLB(info, tab) {
+function searchMLB(info) {
+  // Make sure its our context menu that was clicked
+  if (info.menuItemId !== 'BaseballSearch') {
+    return;
+  }
   const selectionText = info.selectionText.trim().toLowerCase();
   let urlArr = [
                 {
@@ -148,6 +152,7 @@ function searchMLB(info, tab) {
 // Create the context menu
 chrome.contextMenus.create({
   title: 'Search MLB Players: %s', 
-  contexts: ['selection'], 
-  onclick: searchMLB
+  contexts: ['selection'],
+  id: 'BaseballSearch'
 });
+chrome.contextMenus.onClicked.addListener(searchMLB);
