@@ -103,7 +103,14 @@ function searchMLB(info) {
   if (info.menuItemId !== 'BaseballSearch') {
     return;
   }
-  const selectionText = info.selectionText.trim().toLowerCase();
+
+  let selectionText = info.selectionText.trim().toLowerCase();
+  // Replace accented letters with their unaccented counterparts
+  selectionText = selectionText.replace('\u{000E1}', 'a'); // accented a
+  selectionText = selectionText.replace('\u{000E9}', 'e'); // accented e
+  selectionText = selectionText.replace('\u{000F1}', 'n'); // n with ~
+  selectionText = selectionText.replace('\u{000F3}', 'o'); // accented o
+
   let urlArr = [
                 {
                   reqURL:'http://mlb.mlb.com/lookup/json/named.search_player_all.bam?sport_code=%27mlb%27&name_part=%27QUERY%25%27&active_sw=%27Y%27',
