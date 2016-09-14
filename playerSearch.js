@@ -23,22 +23,37 @@ function getJSON(reqURL) {
 // Returns a player MLB id if a player is found, otherwise empty string
 function getMLBID(playerName, isMajorLeague, searchObj) {
   let playerID = '',
-    searchPrefix = '';
+    searchPrefix = '',
+    firstNameProp = '',
+    lastNameProp = '',
+    fullNameProp = '',
     oneName = false;
   if (playerName.split(' ').length === 1) {
     oneName = true;
   }
-  (isMajorLeague) ? searchPrefix = 'search_player_all' : searchPrefix = 'milb_player_search';
+  if (isMajorLeague) {
+    searchPrefix = 'search_player_all';
+    firstNameProp = 'name_first';
+    lastNameProp = 'name_last';
+    fullNameProp = 'name_display_first_last';
+  } else {
+    searchPrefix = 'milb_player_search';
+    firstNameProp = 'player_name_first';
+    lastNameProp = 'player_name_last';
+    fullNameProp = 'name_first_last';
+  }
   const numResults = searchObj[searchPrefix].queryResults.totalSize;
-  console.log(searchObj);
+
   // If there is only one result, results will be one object, not an array
   if (numResults > 0) {
     const rowObj = searchObj[searchPrefix].queryResults.row;
     if (numResults == 1) {
-      playerID = rowObj.player_id;
+      if ((oneName && rowObj[firstNameProp].toLowerCase() === playerName) || (oneName && rowObj[lastNameProp].toLowerCase() === playerName) || (rowObj[fullNameProp].toLowerCase() === playerName)) {
+        playerID = rowObj.player_id;
+      }
     } else if (numResults > 1) {
       for (const player of rowObj) {
-        if ((oneName && player.name_first.toLowerCase() === playerName) || (oneName && player.name_last.toLowerCase() === playerName)|| (player.name_display_first_last.toLowerCase() === playerName)) {
+        if ((oneName && player[firstNameProp].toLowerCase() === playerName) || (oneName && player[lastNameProp].toLowerCase() === playerName) || (player[fullNameProp].toLowerCase() === playerName)) {
           playerID = player.player_id;
           break;
         }
