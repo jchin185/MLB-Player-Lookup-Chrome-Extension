@@ -81,9 +81,12 @@ function getBBReferenceID(playerName, searchObj){
 // Returns the suffix for the Baseball Reference player URL
 function getBBReferenceSuffix(playerID) {
   //first letter of last name followed by id
-  if (playerID) {
-    return playerID.split('')[0] + '/' + playerID;
-  }
+  return (playerID) ? `${playerID[0]}/${playerID}` : '';
+};
+
+// Wrapper function
+function getBBReferenceFullID(playerName, searchObj) {
+  return getBBReferenceSuffix(getBBReferenceID(playerName, searchObj));
 };
 
 // Remove whitespace and replace accented characters
@@ -161,8 +164,7 @@ function searchMLB(info) {
       } else if (/milb\.com\/lookup/.test(urlObj.reqURL)) {
         retID = getMLBID(selectionText, false, resJSON);
       } else if (/baseball-reference/.test(urlObj.reqURL)) {
-        retID = getBBReferenceID(selectionText, resJSON);
-        retID = getBBReferenceSuffix(retID);
+        retID = getBBReferenceFullID(selectionText, resJSON);
       }
 
       if (retID) {
