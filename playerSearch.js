@@ -30,7 +30,7 @@ function getMLBID(playerName, isMajorLeague, searchObj) {
   }
   (isMajorLeague) ? searchPrefix = 'search_player_all' : searchPrefix = 'milb_player_search';
   const numResults = searchObj[searchPrefix].queryResults.totalSize;
-
+  console.log(searchObj);
   // If there is only one result, results will be one object, not an array
   if (numResults > 0) {
     const rowObj = searchObj[searchPrefix].queryResults.row;
@@ -71,6 +71,18 @@ function getBBReferenceSuffix(playerID) {
   }
 };
 
+// Remove whitespace and replace accented characters
+function sanitizeText(inputText) {
+  let cleanText = inputText.trim().toLowerCase();
+  // Replace accented letters with their unaccented counterparts
+  cleanText = cleanText.replace('\u{000E1}', 'a'); // accented a
+  cleanText = cleanText.replace('\u{000E9}', 'e'); // accented e
+  cleanText = cleanText.replace('\u{000F1}', 'n'); // n with ~
+  cleanText = cleanText.replace('\u{000F3}', 'o'); // accented o
+
+  return cleanText;
+};
+
 function createTab(url) {
   chrome.tabs.create({
     url: url
@@ -104,13 +116,7 @@ function searchMLB(info) {
     return;
   }
 
-  let selectionText = info.selectionText.trim().toLowerCase();
-  // Replace accented letters with their unaccented counterparts
-  selectionText = selectionText.replace('\u{000E1}', 'a'); // accented a
-  selectionText = selectionText.replace('\u{000E9}', 'e'); // accented e
-  selectionText = selectionText.replace('\u{000F1}', 'n'); // n with ~
-  selectionText = selectionText.replace('\u{000F3}', 'o'); // accented o
-
+  const selectionText = sanitizeText(info.selectionText);
   let urlArr = [
                 {
                   reqURL:'http://mlb.mlb.com/lookup/json/named.search_player_all.bam?sport_code=%27mlb%27&name_part=%27QUERY%25%27&active_sw=%27Y%27',
@@ -151,7 +157,7 @@ function searchMLB(info) {
       }
     }
     if (!playerFound) {
-      createTab('https://www.google.com/search?q=' + selectionText);
+      createTab('https://www.google.com/search?q=' + info.selectionText);
     }
   });
 };
