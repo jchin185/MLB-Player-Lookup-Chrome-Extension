@@ -186,5 +186,6 @@ chrome.runtime.onInstalled.addListener(() => {
     contexts: ['selection'],
     id: 'BaseballSearch'
   });
-  chrome.contextMenus.onClicked.addListener(searchMLB);
 });
+
+chrome.contextMenus.onClicked.addListener(searchMLB);
