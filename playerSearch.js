@@ -64,18 +64,81 @@ function getMLBID(playerName, isMajorLeague, searchObj) {
   return playerID;
 };
 
-// Returns the Baseball Reference id if a player is found, otherwise emtpy string
-// *TODO: Do some type of optimized search to avoid going down list one by one*
-function getBBReferenceID(playerName, searchObj){
-  let playerID = '';
-  for (const player of searchObj) {
-    if (player.v.toLowerCase() === playerName) {
-      playerID = player.i;
+/** Modified binary search on reverse sorted list of players from baseball reference
+ *  @param name the name to search for
+ *  @param arr the array to search through
+ *  @return the index if a match was found, else -1
+ */
+function BBReferenceNameSearch(name, arr) {
+  let lo = 0,
+      hi = arr.length - 1;
+
+  while (lo <= hi) {
+    let mid = Math.floor(lo + (hi - lo) / 2);
+    const compResult = BBReferenceNameCmp(arr[mid], name);
+    if (compResult === 0) {
+      return mid;
+    // The list is reverse sorted by last name
+    // But there is no sorting on players with same last name
+    // Therefore, once a result with last name is found,
+    // Look left and right to find players with same last name to compare to
+    } else if (compResult === 1) {
+      // We can ignore the current player because that would have returned a value of 0
+      // First look to the left
+      let currInd = mid;
+      do {
+        currInd--;
+        if (BBReferenceNameCmp(arr[currInd], name) === 0) {
+          return currInd;
+        }
+      } while(BBReferenceNameCmp(arr[currInd], name) === 1);
+      // Now look right
+      currInd = mid;
+      do {
+        currInd++;
+        if (BBReferenceNameCmp(arr[currInd], name) === 0) {
+          return currInd;
+        }
+      } while(BBReferenceNameCmp(arr[currInd], name) === 1);
+      // No results
       break;
+    } else if (compResult === 2) {
+      lo = mid + 1;
+    } else {
+      hi = mid -1;
     }
   }
 
-  return playerID;
+  return -1;
+};
+
+/** Comparison function for searching the player list JSON by name for baseball reference
+ *  @param playerObj the object representing a player
+ *  @param name the name to be searched for
+ *  @return 0 if the player full name and name are equal,
+ *          1 if the player last name and name are equal
+ *          -1 if the player last name is alphabetically before name
+ *          else 2
+ */
+function BBReferenceNameCmp(playerObj, name) {
+  const playerName = playerObj.v.toLowerCase(),
+        playerLastName = playerName.split(' ')[1];
+        searchLastName = name.split(' ')[1];
+  if (playerName === name) {
+    return 0;
+  } else if (playerLastName === searchLastName) {
+    return 1;
+  } else if (playerLastName < searchLastName) {
+    return -1;
+  } else {
+    return 2;
+  }
+};
+
+// Returns the Baseball Reference id if a player is found, otherwise emtpy string
+function getBBReferenceID(playerName, searchObj){
+  const ind = BBReferenceNameSearch(playerName, searchObj);
+  return (ind !== -1) ? searchObj[ind].i : '';
 };
 
 // Returns the suffix for the Baseball Reference player URL
