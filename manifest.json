@@ -8,7 +8,7 @@
     "http://*.baseball-reference.com/"
   ],
   "background": {
-    "scripts": ["playerSearch.js"],
+    "scripts": ["lib/playerSearch.js", "contextMenu/contextMenu.js"],
     "persistent": false
   },
   "icons": {
