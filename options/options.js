@@ -31,11 +31,48 @@ const teamArr = [{"FullName": "Arizona Diamondbacks", "Abbreviation": "AZI"},
 
 function addTeamNames() {
 	const selectionBox = document.getElementById('TeamOption');
-	for (const team of teamArr) {
-		selectionBox.innerHTML += `<option>${team.FullName} (${team.Abbreviation})</option>`; 
-	}
+
+	selectionBox.innerHTML = teamArr.reduce((prevVal, currVal) => {
+		const escapedText = JSON.stringify(currVal).replace(/"/g, "&quot;");
+		return prevVal += `<option value="${escapedText}">${currVal.FullName} (${currVal.Abbreviation})</option>`;
+	}, selectionBox.innerHTML);
+	chrome.storage.sync.get({
+		team: teamArr[0]
+	}, (items) => {
+		if (chrome.runtime.lastError) {
+			console.log(chrome.runtime.lastError);
+		} else {
+			selectionBox.selectedIndex = teamArr.findIndex((elem) => {
+				return (elem.FullName === items.team.FullName) && (elem.Abbreviation === items.team.Abbreviation);
+			});
+		}
+	});
+};
+
+function saveOptions() {
+	const selectedTeam = JSON.parse(document.getElementById('TeamOption').value);
+
+	chrome.storage.sync.set({
+		team: selectedTeam
+	}, () => {
+		if (chrome.runtime.lastError) {
+			console.log(chrome.runtime.lastError);
+		} else {
+			const overlay = document.getElementById('overlay'),
+				status = document.getElementById('saveStatus');
+
+			status.textContent = 'Saved!';
+			overlay.style.display = 'block';
+			status.style.display = 'block';
+			setTimeout(() => {
+				overlay.style.display = 'none';
+				status.style.display = 'none';
+			}, 1000);
+		}
+	});
 };
 
 window.onload = () => {
 	addTeamNames();
+	document.getElementById('save').addEventListener('click', saveOptions);
 };

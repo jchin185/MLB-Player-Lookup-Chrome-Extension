@@ -5,6 +5,7 @@
   "description": "Search for MLB players through the Google Chrome context menu.",
   "permissions": [
     "contextMenus",
+    "storage",
     "http://*.baseball-reference.com/"
   ],
   "background": {

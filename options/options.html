@@ -1,33 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <link rel="stylesheet" href="style.css" />
   <title>MLB Player Search Options</title>
 </head>
 
 <body>
-  <input type="checkbox"> Search MLB<br>
-  <input type="checkbox"> Search MiLB(Minor League)<br>
-  <input type="checkbox"> Search Baseball Reference<br>
-  <input type="checkbox"> Search Active Players<br>
-  <input type="checkbox"> Search Inactive Players<br>
-  <label>
-    Search by...
-    <select>
-      <option>Full Name</option>
-      <option>First Name</option>
-      <option>Last Name</option>
-    </select>
-  </label>
-  <br>
-  <label>
-    Search By Team
-    <select id="TeamOption">
-    </select>
-  </label>
-  <br>
+  <div>
+    <input type="checkbox"> Search MLB<br>
+    <input type="checkbox"> Search MiLB(Minor League)<br>
+    <input type="checkbox"> Search Baseball Reference<br>
+    <input type="checkbox"> Search Active Players<br>
+    <input type="checkbox"> Search Inactive Players<br>
+  </div>
+  <div>
+    <label>
+      Search by...
+      <select>
+        <option>Full Name</option>
+        <option>First Name</option>
+        <option>Last Name</option>
+      </select>
+    </label>
+  </div>
+  <div>
+    <label>
+      Search By Team
+      <select id="TeamOption">
+      </select>
+    </label>
+  </div>
+  <div>
   <button id="save">Save</button>
   <button id="default">Default</button>
   <button id="clear">Clear All</button>
+  </div>
+
+  <div id="overlay"></div>
+  <div id="saveStatus"</div>
 
   <script src="options.js"></script>
 </body>

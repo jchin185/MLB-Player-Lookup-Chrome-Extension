@@ -1,0 +1,33 @@
+div {
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+#overlay {
+	background-color: lightgray;
+	display: none;
+	height: 100%;
+	left: 0px;
+	margin: 0px;
+	opacity: 0.75;
+	padding: 0px;
+	position: fixed;
+	top: 0px;
+	width: 100%;
+	z-index: 5;
+}
+
+#saveStatus {
+	background-color: white;
+	display: none;
+	left: 40%;
+	line-height: 40px;
+	height: 20%;
+	margin: 0px;
+	padding: 0px;
+	position: fixed;
+	text-align: center;
+	top: 40%;
+	width: 20%;
+	z-index: 10;
+}
