@@ -32,10 +32,13 @@ const teamArr = [{"FullName": "Arizona Diamondbacks", "Abbreviation": "AZI"},
 function addTeamNames() {
 	const selectionBox = document.getElementById('TeamOption');
 
-	selectionBox.innerHTML = teamArr.reduce((prevVal, currVal) => {
-		const escapedText = JSON.stringify(currVal).replace(/"/g, "&quot;");
-		return prevVal += `<option value="${escapedText}">${currVal.FullName} (${currVal.Abbreviation})</option>`;
-	}, selectionBox.innerHTML);
+	for (const team of teamArr) {
+		const option = document.createElement('option');
+		const text = document.createTextNode(`${team.FullName} (${team.Abbreviation})`);
+		option.appendChild(text);
+		option.setAttribute('value', JSON.stringify(team));
+		selectionBox.appendChild(option);
+	}
 	chrome.storage.sync.get({
 		team: teamArr[0]
 	}, (items) => {
