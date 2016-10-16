@@ -58,20 +58,22 @@ function saveOptions() {
 	chrome.storage.sync.set({
 		team: selectedTeam
 	}, () => {
+		const modal = document.getElementById('modal'),
+				modalContent = document.getElementById('modalContent'),
+				saveStatus = document.getElementById('saveStatus');
+
 		if (chrome.runtime.lastError) {
 			console.log(chrome.runtime.lastError);
+			saveStatus.textContent = 'Oops! Something went wrong.';
 		} else {
-			const overlay = document.getElementById('overlay'),
-				status = document.getElementById('saveStatus');
-
-			status.textContent = 'Saved!';
-			overlay.style.display = 'block';
-			status.style.display = 'block';
-			setTimeout(() => {
-				overlay.style.display = 'none';
-				status.style.display = 'none';
-			}, 1000);
+			saveStatus.textContent = 'Saved!';
 		}
+		modal.style.display = 'block';
+		modalContent.style.display = 'block';
+		setTimeout(() => {
+			modal.style.display = 'none';
+			modalContent.style.display = 'none';
+		}, 1000);
 	});
 };
 
